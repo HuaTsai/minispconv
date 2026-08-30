@@ -1,8 +1,21 @@
-# python
+# Upstream reference material and local scratch -- see CLAUDE.md
+/refs/
+
+# Python
 __pycache__/
-.pytest_cache/
+*.py[oc]
+*.egg-info/
+build/
+dist/
+wheels/
 
-# pixi environments
-.pixi/*
-!.pixi/config.toml
+# Virtual environments and package manager
+.venv/
+.pixi/
 
+# Claude Code -- personal preferences, not project settings
+.claude/settings.json
+.claude/settings.local.json
+
+# Editor
+.vscode/
