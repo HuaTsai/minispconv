@@ -25,6 +25,18 @@ commit message。錯誤訊息等同公開介面（會出現在使用者的 trace
 搬移時**不要稀釋論述** —— 被否決的方案與其代價要一併記錄，那才是 design note
 的價值所在。
 
+## 改完程式要跑什麼
+
+```bash
+pixi run check
+```
+
+依序跑 `ruff format` → `ruff check --fix` → `pyright` → `pytest`。**順序有意義**：
+format 會改動程式碼，先跑才不會讓 lint 去抓格式化之後才出現的問題。
+
+寫成單一入口而不是三行指令，是為了讓「該跑什麼」只有一份定義 ——
+之後加工具改 `pyproject.toml` 的 `[tool.pixi.tasks]`，這裡不用動。
+
 ## 其他
 
 - `refs/` 是本地的參考資料夾（上游程式碼、開發日誌、探針），不進版控，需獨立備份

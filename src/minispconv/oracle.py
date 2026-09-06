@@ -114,6 +114,11 @@ def build_rulebook(
         subm: when True the output coordinate set is identical to the input set,
             keeping only pairs that land inside it. SubM and regular share one
             core loop; only where the output coordinate set comes from differs.
+            SubM also pins the other parameters: stride must be 1, kernel_size
+            must be odd, and padding is determined by dilation * (ks - 1) // 2.
+            See docs/design/subm.md for the derivation -- this function does not
+            enforce them, so a caller passing anything else gets a well-formed
+            but meaningless pair set.
     """
     ndim = len(spatial_shape)
     shape = tuple(int(v) for v in spatial_shape)

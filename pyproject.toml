@@ -57,3 +57,13 @@ cuda-toolkit = ">=12.9.2,<13"
 [tool.pixi.environments]
 default = ["cu13"]
 cu12 = ["cu12"]
+
+[tool.pytest.ini_options]
+pythonpath = ["tests"]
+
+[tool.pixi.tasks]
+fmt = "ruff format ."
+lint = "ruff check --fix ."
+types = "pyright"
+test = "pytest -q"
+check = { depends-on = ["fmt", "lint", "types", "test"] }
