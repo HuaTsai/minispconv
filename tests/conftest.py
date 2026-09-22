@@ -8,6 +8,8 @@ Two fixture families with opposite trust directions (see docs/ROADMAP.md S0.2):
   Random input is meaningless for checking the oracle itself.
 """
 
+import math
+import random
 from collections.abc import Sequence
 
 import pytest
@@ -157,21 +159,41 @@ def random_point_cloud(
 ) -> list[list[int]]:
     """Generate a reproducible random active-coordinate table.
 
-    Returns rows of `[batch, *coords]`, the same layout `build_rulebook` takes.
+    Returns rows of `[batch, *coords]` as plain ints, the layout `build_rulebook`
+    takes. Coordinates follow `spatial_shape` axis by axis, so pass `(D, H, W)`
+    to get `(b, z, y, x)` rows -- the 3D convention the implementation fixes.
 
-    Contract this must satisfy (tests/test_fixtures.py checks all four):
-      1. Same seed -> identical output, across processes and runs.
-      2. No duplicate (batch, coord) rows -- an active table with duplicates is
-         not a sparse tensor, and the oracle would silently dedupe it.
-      3. Every coordinate is inside `spatial_shape`.
-      4. Every batch index in `range(batch_size)` appears at least once, so a
-         per-batch bug cannot hide behind an empty batch.
+    Guarantees:
+      - Same seed -> identical output across processes and runs. `seed` is the
+        only source of randomness; the global `random` state is never touched.
+      - Exactly `round(prod(spatial_shape) * density)` rows per batch, with no
+        duplicate `(batch, coord)` -- duplicates are not a sparse tensor, and
+        the oracle would silently dedupe them while an implementation may not.
+      - Every batch index in `range(batch_size)` is populated, so a per-batch
+        bug cannot hide behind an empty batch.
+
+    Raises:
+        ValueError: `density` rounds to zero points. An empty table would let
+            an "empty vs empty" comparison pass downstream; construct that case
+            explicitly instead.
 
     Args:
         spatial_shape: grid extent per axis.
         density: fraction of grid cells that are active, in (0, 1].
-        seed: PRNG seed; the only source of randomness.
+        seed: PRNG seed.
         batch_size: number of batches sharing one flattened table.
     """
-    # TODO(human)
-    raise NotImplementedError
+    rng = random.Random(seed)  # never touch the global PRNG
+    voxels = math.prod(spatial_shape)
+    points = round(voxels * density)
+    if points == 0:
+        raise ValueError(f"density {density} yields no points on {spatial_shape}")
+    ret = []
+    for b in range(batch_size):
+        for flat in rng.sample(range(voxels), points):  # sampling without replacement
+            coords = []
+            for extent in reversed(spatial_shape):
+                flat, c = divmod(flat, extent)
+                coords.append(c)
+            ret.append([b, *reversed(coords)])
+    return ret

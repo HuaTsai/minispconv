@@ -64,3 +64,9 @@ def test_feeds_the_oracle(density: float):
     rows = random_point_cloud(SHAPE, density=density, seed=17, batch_size=2)
     rb = build_rulebook(rows, SHAPE, 3, padding=1, subm=True)
     assert {p.out_pos for p in rb} <= {tuple(r[1:]) for r in rows}
+
+
+def test_zero_points_is_an_error():
+    """An empty table would let an empty-vs-empty comparison pass downstream."""
+    with pytest.raises(ValueError, match="no points"):
+        random_point_cloud((4, 4, 4), density=0.001, seed=1)
