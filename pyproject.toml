@@ -54,9 +54,16 @@ cuda = "12"
 [tool.pixi.feature.cu12.dependencies]
 cuda-toolkit = ">=12.9.2,<13"
 
+[tool.pixi.feature.spconv.pypi-dependencies]
+spconv-cu126 = ">=2.3.8,<2.4"
+
+[tool.pixi.feature.spconv.tasks]
+test-spconv = "pytest -q tests/test_spconv_smoke.py"
+
 [tool.pixi.environments]
 default = ["cu13"]
 cu12 = ["cu12"]
+spconv = ["cu12", "spconv"]
 
 [tool.pytest.ini_options]
 pythonpath = ["tests"]
